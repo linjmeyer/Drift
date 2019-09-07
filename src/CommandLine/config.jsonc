@@ -6,7 +6,7 @@
                     "type": "GetPod",
                     "name": "my-nginx-75c44d6787-kv74z",
                     "namespace": "default",
-                    "evaluate": "return true;"
+                    "evaluate": "return (context.Pod.Metadata.Name == \"!!my-nginx-75c44d6787-kv74z\");"
                 }
             ]
         }
