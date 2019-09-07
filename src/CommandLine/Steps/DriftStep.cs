@@ -8,8 +8,8 @@ public interface IDriftStep
 }
 
 /// <summary>
-/// A placeholder class to allow serailization/deserialization from JSON.  
-/// Call ResolveType to get the true Object type before use.
+/// A placeholder class to allow serailization/deserialization from JSON.
+/// Once deserialized check the Type property to determine the correct concrete class to use
 /// </summary>
 public class GenericDriftStep : IDriftStep
 {
