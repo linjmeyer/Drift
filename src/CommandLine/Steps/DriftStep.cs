@@ -3,6 +3,7 @@ using System;
 public interface IDriftStep
 {
     string Type { get; set; }
+    string Evaluate { get; set; }
     bool Run();
 }
 
@@ -12,10 +13,12 @@ public interface IDriftStep
 /// </summary>
 public class GenericDriftStep : IDriftStep
 {
+    private string _notImplemented = $"{nameof(GenericDriftStep)} should not be used.  Use a specific step instead";
     public string Type { get; set; }
+    public string Evaluate { get; set; }
 
     public bool Run()
     {
-        throw new NotImplementedException($"{nameof(GenericDriftStep)} should not be used.  Use a specific step instead");
+        throw new NotImplementedException(_notImplemented);
     }
 }
