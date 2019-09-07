@@ -1,0 +1,13 @@
+{
+    "actions": [
+        {
+            "steps": [
+                {
+                    "type": "GetPod",
+                    "name": "my-nginx-75c44d6787-kv74z",
+                    "namespace": "default"
+                }
+            ]
+        }
+    ]
+}
