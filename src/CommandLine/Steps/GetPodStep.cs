@@ -1,25 +1,28 @@
+using System;
 using k8s;
 using k8s.Models;
+using Microsoft.Rest;
 
 namespace CommandLine.Steps
 {
-    public class GetPodStep : IDriftStep
+    public class GetPodStep : AbstractDriftStep
     {
-
-        public string Type { get; set; }
         public string Name { get; set; }
         public string Namespace { get; set; }
         public V1Pod Pod { get; private set; }
 
-        public string Evaluate { get; set; }
-
-        public bool Run()
+        public override bool Run()
         {
-            Pod = Program.Client.ReadNamespacedPod(Name, Namespace);
-            if(Pod == null) return false;
-            // Run user code if given 
-            if(!string.IsNullOrWhiteSpace(Evaluate)) return this.EvaluateBool(Evaluate);
-
+            try
+            {
+                Pod = Program.Client.ReadNamespacedPod(Name, Namespace);
+                if (Pod == null) return false;
+            }
+            catch (HttpOperationException e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
             return true;
         }
     }

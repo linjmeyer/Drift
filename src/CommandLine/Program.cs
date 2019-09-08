@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using k8s;
 using Newtonsoft.Json;
 
@@ -28,9 +29,13 @@ namespace CommandLine
         {
             foreach(var action in Config.Actions)
             {
+                var previousContexts = new List<IDriftStep>();
                 foreach(var step in action.Steps)
                 {
-                    var eval = step.Run();
+                    step.PreviousContexts.AddRange(previousContexts);
+                    var runResult = step.Run();
+                    var evalResult = step.EvaluateBool();
+                    previousContexts.Add(step);
                 }
             }
         }
