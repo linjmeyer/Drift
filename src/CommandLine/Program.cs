@@ -7,7 +7,7 @@ namespace CommandLine
         static void Main(string[] args)
         {
             var drift = new DriftClient(c => {
-                c.DriftConfigPath = "/Users/lin.meyer/Personal/Drift/src/CommandLine/config.jsonc";
+                c.DriftConfigPath = "/Users/lin.meyer/Personal/Drift/src/CommandLine/debug_config.jsonc";
             });
             drift.Run();
         }

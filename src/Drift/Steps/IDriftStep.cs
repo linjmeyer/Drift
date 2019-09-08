@@ -6,6 +6,7 @@ namespace Drift.Steps
     {
         string Type { get; set; }
         string Evaluate { get; set; }
+        string EvaluateFile { get; set; }
         List<IDriftStep> PreviousContexts { get; set; }
         dynamic Bag { get; set; }
         bool Run();

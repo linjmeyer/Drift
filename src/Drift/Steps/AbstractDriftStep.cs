@@ -17,6 +17,7 @@ namespace Drift.Steps
 
         public string Type { get; set; }
         public string Evaluate { get; set; }
+        public string EvaluateFile { get; set; }
         public List<IDriftStep> PreviousContexts { get; set; } = new List<IDriftStep>();
         public dynamic Bag { get; set; } = new ExpandoObject();
 
