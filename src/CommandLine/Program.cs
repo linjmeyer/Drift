@@ -6,9 +6,9 @@ namespace CommandLine
     {
         static void Main(string[] args)
         {
-            var drift = new DriftClient();
-            drift.SetupKubernetesClient();
-            drift.SetupDriftConfig("/Users/lin.meyer/Personal/Drift/src/CommandLine/config.jsonc");
+            var drift = new DriftClient(c => {
+                c.DriftConfigPath = "/Users/lin.meyer/Personal/Drift/src/CommandLine/config.jsonc";
+            });
             drift.Run();
         }
     }

@@ -1,16 +1,17 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using k8s;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Drift.Steps
 {
     public abstract class AbstractDriftStep : IDriftStep
     {
-        protected Kubernetes _k8s;
+        protected IKubernetes _k8s;
 
         public AbstractDriftStep()
         {
-            _k8s = DriftClient._k8s;
+            _k8s = DriftClient.Services.GetRequiredService<IKubernetes>();
         }
 
         public string Type { get; set; }

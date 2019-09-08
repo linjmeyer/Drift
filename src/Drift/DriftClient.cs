@@ -1,44 +1,46 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Drift.Steps;
 using k8s;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
 namespace Drift
 {
     public class DriftClient
     {
+        internal static ServiceProvider Services;
         public static Kubernetes _k8s; //ToDo: Make private non-static
         private DriftConfig _config;
+        private ServiceCollection _serviceCollection = new ServiceCollection();
+        private DriftClientConfig _clientConfig = new DriftClientConfig();
 
-        public DriftClient()
+        public DriftClient(Action<DriftClientConfig> config = null)
         {
+            config?.Invoke(_clientConfig);
         }
 
-        public void SetupKubernetesClient(string currentContext = null, string kubeConfigPath = null)
+        private void SetupKubernetesClient()
         {
             var config = KubernetesClientConfiguration
-                .BuildConfigFromConfigFile(kubeconfigPath: kubeConfigPath,
-                    currentContext: currentContext);
+                .BuildConfigFromConfigFile(kubeconfigPath: _clientConfig.KubeConfigPath,
+                    currentContext: _clientConfig.KubernetesContext);
             _k8s = new Kubernetes(config);
+            _serviceCollection.AddSingleton<IKubernetes>(_k8s);
         }
 
-        public void SetupDriftConfig(string driftConfigPath = null)
+        private void SetupDriftConfig()
         {
-            if (string.IsNullOrWhiteSpace(driftConfigPath))
-            {
-                driftConfigPath = $"{Directory.GetCurrentDirectory()}{Path.PathSeparator}drift.json";
-            }
-
-            var fileContents = File.ReadAllText(driftConfigPath);
+            var fileContents = File.ReadAllText(_clientConfig.DriftConfigPath);
             _config = JsonConvert.DeserializeObject<DriftConfig>(fileContents);
         }
 
         public void Run()
         {
             if (_k8s == null) SetupKubernetesClient();
+            DriftClient.Services = _serviceCollection.BuildServiceProvider();
             if (_config == null) SetupDriftConfig();
-
             foreach(var action in _config.Actions)
             {
                 RunSteps(action);
