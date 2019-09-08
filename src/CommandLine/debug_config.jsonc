@@ -3,16 +3,9 @@
         {
             "steps": [
                 {
-                    "type": "GetPod",
-                    "name": "my-nginx-75c44d6787-kv74z",
+                    "type": "SearchPod",
+                    "nameregex": ".*nginx.*",
                     "namespace": "default",
-                    "evaluateFile": "/Users/lin.meyer/Personal/Drift/src/CommandLine/debug_script1.csscript"
-                },
-                {
-                    "type": "Eval",
-                    "name": "will-fail",
-                    "namespace": "default",
-                    "evaluate": "var prevCtx = context.GetPreviousContext(); return (prevCtx.Pod.Metadata.Name == \"my-nginx-75c44d6787-kv74z\" && context.Bag.Hello == \"hello\");"
                 }
             ]
         }
