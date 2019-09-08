@@ -3,7 +3,7 @@ using k8s;
 using k8s.Models;
 using Microsoft.Rest;
 
-namespace CommandLine.Steps
+namespace Drift.Steps
 {
     public class GetPodStep : AbstractDriftStep
     {
@@ -15,7 +15,7 @@ namespace CommandLine.Steps
         {
             try
             {
-                Pod = Program.Client.ReadNamespacedPod(Name, Namespace);
+                Pod = _k8s.ReadNamespacedPod(Name, Namespace);
                 if (Pod == null) return false;
             }
             catch (HttpOperationException e)

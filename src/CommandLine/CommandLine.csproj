@@ -6,8 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CS-Script.Core" Version="1.1.1" />
-    <PackageReference Include="KubernetesClient" Version="1.5.25" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Drift\Drift.csproj" />
   </ItemGroup>
 
 </Project>

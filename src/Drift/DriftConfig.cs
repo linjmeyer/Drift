@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
-using System.Reflection;
-using CommandLine.Steps;
+using Drift.Steps;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace CommandLine
+namespace Drift
 {
     public class DriftConfig
     {
@@ -36,7 +34,7 @@ namespace CommandLine
                 var genericStep = item.ToObject<GenericDriftStep>();
                 // Get real type based on Type value set by user
                 var assembly = typeof(GenericDriftStep).Assembly;
-                var dotNetTypeString = $"{nameof(CommandLine)}.{nameof(CommandLine.Steps)}.{genericStep.Type}Step";
+                var dotNetTypeString = $"{nameof(Drift)}.{nameof(Drift.Steps)}.{genericStep.Type}Step";
                 var dotNetType = assembly.GetType(dotNetTypeString);
                 // Serialize to user requested type
                 var concreteStep = item.ToObject(dotNetType);

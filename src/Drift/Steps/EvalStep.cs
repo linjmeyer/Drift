@@ -1,6 +1,4 @@
-using System.Collections.Generic;
-
-namespace CommandLine.Steps
+namespace Drift.Steps
 {
     public class EvalStep : AbstractDriftStep
     {
