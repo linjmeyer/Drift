@@ -30,12 +30,22 @@ namespace CommandLine
             foreach(var action in Config.Actions)
             {
                 var previousContexts = new List<IDriftStep>();
+                dynamic previousBag = null;
                 foreach(var step in action.Steps)
                 {
+                    // Save previous contexts to this step
                     step.PreviousContexts.AddRange(previousContexts);
+                    // Save previous Bag (user data store)
+                    if(previousBag != null)
+                    {
+                        step.Bag = previousBag;
+                    }
+                    // Run the internal step and user defined eval
                     var runResult = step.Run();
                     var evalResult = step.EvaluateBool();
+                    // save this step and bag for next step
                     previousContexts.Add(step);
+                    previousBag = step.Bag;
                 }
             }
         }

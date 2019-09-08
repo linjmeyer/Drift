@@ -6,13 +6,13 @@
                     "type": "GetPod",
                     "name": "my-nginx-75c44d6787-kv74z",
                     "namespace": "default",
-                    "evaluate": "return (context.Pod.Metadata.Name == \"my-nginx-75c44d6787-kv74z\");"
+                    "evaluate": "context.Bag.Hello = \"hello\"; return (context.Pod.Metadata.Name == \"my-nginx-75c44d6787-kv74z\");"
                 },
                 {
                     "type": "Eval",
                     "name": "will-fail",
                     "namespace": "default",
-                    "evaluate": "var prevCtx = context.GetPreviousContext(); return (prevCtx.Pod.Metadata.Name == \"!my-nginx-75c44d6787-kv74z\");"
+                    "evaluate": "var prevCtx = context.GetPreviousContext(); return (prevCtx.Pod.Metadata.Name == \"my-nginx-75c44d6787-kv74z\" && context.Bag.Hello == \"Hello\");"
                 }
             ]
         }
