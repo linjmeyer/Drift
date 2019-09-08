@@ -4,6 +4,7 @@ using System.IO;
 using Drift.Steps;
 using k8s;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Drift
@@ -21,13 +22,23 @@ namespace Drift
             config?.Invoke(_clientConfig);
         }
 
+        private void SetupServices()
+        {
+            _serviceCollection.AddSingleton<IKubernetes>(_k8s);
+            if(_clientConfig.Logger != null) 
+            {
+                _serviceCollection.AddSingleton<ILogger>(_clientConfig.Logger);
+                _serviceCollection.AddSingleton<ILogger<DriftClient>>(_clientConfig.Logger);
+            }
+            DriftClient.Services = _serviceCollection.BuildServiceProvider();
+        }
+
         private void SetupKubernetesClient()
         {
             var config = KubernetesClientConfiguration
                 .BuildConfigFromConfigFile(kubeconfigPath: _clientConfig.KubeConfigPath,
                     currentContext: _clientConfig.KubernetesContext);
             _k8s = new Kubernetes(config);
-            _serviceCollection.AddSingleton<IKubernetes>(_k8s);
         }
 
         private void SetupDriftConfig()
@@ -38,31 +49,48 @@ namespace Drift
 
         public void Run()
         {
-            if (_k8s == null) SetupKubernetesClient();
-            DriftClient.Services = _serviceCollection.BuildServiceProvider();
-            if (_config == null) SetupDriftConfig();
-            foreach(var action in _config.Actions)
+            // Setup k8s, then build services
+            SetupKubernetesClient();
+            SetupServices();
+            // Load drift config
+            SetupDriftConfig();
+            // Begin
+            RunActions();
+            // Dispose of services
+            Services.Dispose();
+        }
+
+        private void RunActions()
+        {
+            var logger = Services.GetRequiredService<ILogger<DriftClient>>();
+            foreach (var action in _config.Actions)
             {
-                RunSteps(action);
+                logger.LogInformation($"Found new action with {action.Steps.Length} steps");
+                RunSteps(action, logger);
             }
         }
 
-        private void RunSteps(DriftAction action)
+        private void RunSteps(DriftAction action, ILogger<DriftClient> logger)
         {
             var previousContexts = new List<IDriftStep>();
             dynamic previousBag = null;
-            foreach(var step in action.Steps)
+            for (var i = 0; i < action.Steps.Length; i++)
             {
+                logger.LogInformation($"Starting step: {i}");
+                var step = action.Steps[i];
                 // Save previous contexts to this step
                 step.PreviousContexts.AddRange(previousContexts);
                 // Save previous Bag (user data store)
-                if(previousBag != null)
+                if (previousBag != null)
                 {
                     step.Bag = previousBag;
+                    logger.LogDebug($"Passing bag from previous step to step {i}.  Contents: {step.Bag}");
                 }
                 // Run the internal step and user defined eval
                 var runResult = step.Run();
+                logger.LogInformation($"Result of {step.Type}: {runResult} {(runResult ? "Will run user eval" : "Will not run user eval")}");
                 var evalResult = step.RunUserEval<bool>();
+                logger.LogInformation($"Result of {step.Type} User Eval: {evalResult}");
                 // save this step and bag for next step
                 previousContexts.Add(step);
                 previousBag = step.Bag;

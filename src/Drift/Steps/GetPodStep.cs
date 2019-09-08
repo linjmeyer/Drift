@@ -1,6 +1,7 @@
 using System;
 using k8s;
 using k8s.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.Rest;
 
 namespace Drift.Steps
@@ -20,7 +21,7 @@ namespace Drift.Steps
             }
             catch (HttpOperationException e)
             {
-                Console.WriteLine(e);
+                Log?.LogDebug($"Exception during step {Type}: ", e);
                 return false;
             }
             return true;

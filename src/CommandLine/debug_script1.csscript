@@ -1,0 +1,2 @@
+context.Bag.Hello = "hello"; 
+return (context.Pod.Metadata.Name == "my-nginx-75c44d6787-kv74z");
