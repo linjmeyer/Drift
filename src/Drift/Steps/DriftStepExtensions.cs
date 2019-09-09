@@ -9,7 +9,7 @@ namespace Drift.Steps
     /// </summary>
     internal static class DriftStepExtensions
     {
-        internal static T RunUserEval<T>(this IDriftStep step)
+        internal static T RunUserEval<T>(this IDriftStep step, string typeString = null)
         {
             // Get file contents if set
             // Set file contents to Evaluate property
@@ -26,7 +26,7 @@ namespace Drift.Steps
             }
 
             var allCode = $@"
-            public {typeof(T)} UsersMethod(dynamic context)
+            public {(typeString ?? typeof(T).ToString())} UsersMethod(dynamic context)
             {{
                 {step.Evaluate}
             }}";

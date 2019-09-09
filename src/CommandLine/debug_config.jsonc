@@ -3,9 +3,10 @@
         {
             "steps": [
                 {
-                    "type": "SearchPod",
+                    "type": "SearchPods",
                     "nameregex": ".*nginx.*",
                     "namespace": "default",
+                    "evaluate": "return false;",
                 }
             ]
         }

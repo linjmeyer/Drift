@@ -66,11 +66,12 @@ namespace Drift
             foreach (var action in _config.Actions)
             {
                 logger.LogInformation($"Found new action with {action.Steps.Length} steps");
-                RunSteps(action, logger);
+                var actionResult = RunSteps(action, logger);
+                logger.LogInformation($"Action ran to completion with result: {actionResult}");
             }
         }
 
-        private void RunSteps(DriftAction action, ILogger<DriftClient> logger)
+        private bool RunSteps(DriftAction action, ILogger<DriftClient> logger)
         {
             var previousContexts = new List<IDriftStep>();
             dynamic previousBag = null;
@@ -86,15 +87,33 @@ namespace Drift
                     step.Bag = previousBag;
                     logger.LogDebug($"Passing bag from previous step to step {i}.  Contents: {step.Bag}");
                 }
-                // Run the internal step and user defined eval
+                
+                // Run the step and get the result
                 var runResult = step.Run();
                 logger.LogInformation($"Result of {step.Type}: {runResult} {(runResult ? "Will run user eval" : "Will not run user eval")}");
-                var evalResult = step.RunUserEval<bool>();
-                logger.LogInformation($"Result of {step.Type} User Eval: {evalResult}");
+                if(!runResult) return false; // Stop loop if this step is false
+                
+                // Run the user eval and get the result
+                var evalResult = step.RunUserEval<bool?>(typeString: "bool?");
+                if(evalResult.HasValue) 
+                {
+                    logger.LogInformation($"Result of {step.Type} User Eval: {evalResult}");
+                    if(!evalResult.Value)
+                    {
+                        return false; // user returned false, stop action
+                    }
+                }
+                else
+                {
+                    logger.LogInformation($"No user eval found");
+                }
+
                 // save this step and bag for next step
                 previousContexts.Add(step);
                 previousBag = step.Bag;
             }
+
+            return true; // If everything finished the steps all ran successfully 
         }
     }
 }
