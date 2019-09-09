@@ -15,6 +15,10 @@ namespace Drift.Steps
         public string Namespace { get; set; }
         public V1Pod Pod { get; private set; }
 
+        public override void Load()
+        {
+        }
+
         public override bool Run()
         {
             try

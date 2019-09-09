@@ -16,6 +16,11 @@ namespace Drift.Steps
         public string Namespace { get; set; }
         public V1PodList PodList { get; set; }
         public IList<V1Pod> Matches { get; set; }
+
+        public override void Load()
+        {
+        }
+
         public override bool Run()
         {
             PodList = _k8s.ListNamespacedPod(Namespace);

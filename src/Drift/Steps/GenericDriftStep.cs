@@ -10,6 +10,11 @@ namespace Drift.Steps
     {
         private string _notImplemented = $"{nameof(GenericDriftStep)} should not be used.  Use a specific step instead";
 
+        public override void Load()
+        {
+            throw new NotImplementedException(_notImplemented);
+        }
+
         public override bool Run()
         {
             throw new NotImplementedException(_notImplemented);

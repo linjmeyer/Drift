@@ -3,10 +3,15 @@
         {
             "steps": [
                 {
-                    "type": "SearchPods",
-                    "nameregex": ".*nginx.*",
+                    "type": "GetPod",
                     "namespace": "default",
-                    "evaluate": "return false;",
+                    "name": "backenddogfoodtests-integration-test-job-lmqxm",
+                    "evaluate": "context.Bag.PodsToDelete = new string[] { context.Pod.Metadata.Name }; return true;"
+                },
+                {
+                    "type": "DeletePods",
+                    "namespace": "default",
+                    "namesFromBag": "PodsToDelete"
                 }
             ]
         }

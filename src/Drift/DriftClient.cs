@@ -88,6 +88,9 @@ namespace Drift
                     logger.LogDebug($"Passing bag from previous step to step {i}.  Contents: {step.Bag}");
                 }
                 
+                logger.LogDebug("Starting load step");
+                step.Load();
+
                 // Run the step and get the result
                 var runResult = step.Run();
                 logger.LogInformation($"Result of {step.Type}: {runResult} {(runResult ? "Will run user eval" : "Will not run user eval")}");

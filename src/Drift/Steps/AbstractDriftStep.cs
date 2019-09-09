@@ -24,6 +24,7 @@ namespace Drift.Steps
         public dynamic Bag { get; set; } = new ExpandoObject();
         public ILogger<DriftClient> Log { get; set; }
         public abstract bool Run();
+        public abstract void Load();
 
         public IDriftStep GetPreviousContext(int index = 0)
         {

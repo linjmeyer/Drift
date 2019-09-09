@@ -12,5 +12,6 @@ namespace Drift.Steps
         dynamic Bag { get; set; }
         ILogger<DriftClient> Log { get; set; }
         bool Run();
+        void Load();
     }
 }
