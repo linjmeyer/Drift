@@ -22,11 +22,11 @@ namespace Drift.AspNetCore
         }
 
         /// <summary>
-        /// Adds a Hangfire RecurringJob which reloads the Drift configuration and enqueues each Drift action to run seperately
+        /// Adds a Hangfire RecurringJob which reloads the Drift configuration and enqueues each Drift Job to run seperately
         /// </summary>
         /// <param name="backgroundJob"></param>
         /// <returns></returns>
-        public static IBackgroundJobClient AddDriftActionScheduling(this IBackgroundJobClient backgroundJob)
+        public static IBackgroundJobClient AddDriftJobScheduling(this IBackgroundJobClient backgroundJob)
         {
             // Setup re-occuring
             RecurringJob.AddOrUpdate<DriftScheduler>(

@@ -17,7 +17,7 @@ namespace Drift
 
         private DriftConfig _config;
         private DriftClientConfig _clientConfig = new DriftClientConfig();
-        private List<string> _actionNames = new List<string>();
+        private List<string> _jobNames = new List<string>();
 
         public DriftClient(DriftClientConfig config)
         {
@@ -39,7 +39,7 @@ namespace Drift
 
         private void SetupDriftConfig()
         {
-            // Load config (not actions, steps, etc. but config options)
+            // Load config (not jobs, steps, etc. but config options)
             var fileContents = File.ReadAllText(_clientConfig.DriftConfigPath);
             _config = JsonConvert.DeserializeObject<DriftConfig>(fileContents);
             // Setup logging if passed in
@@ -48,70 +48,70 @@ namespace Drift
 
 
         /// <summary>
-        /// Gets each action as an action which can be invoked individually
+        /// Returns all jobs loaded by the Drift client config
         /// </summary>
         /// <returns></returns>
-        public DriftAction[] GetActions()
+        public DriftJob[] GetJobs()
         {
             // Setup k8s, then build services
             SetupKubernetesClient();
             // Load drift config
             SetupDriftConfig();
             // Check names for issues
-            ValidateActionNames();
+            ValidateJobNames();
 
-            return _config.Actions;
+            return _config.Jobs;
         }
 
         /// <summary>
-        /// Returns the number of Actions present in the config without running or preparing to run them.
+        /// Returns the unique name of all jobs
         /// </summary>
         /// <returns></returns>
-        public string[] GetActionNames()
+        public string[] GetJobNames()
         {
             SetupDriftConfig();
-            ValidateActionNames();
+            ValidateJobNames();
 
-            return _actionNames.ToArray();
+            return _jobNames.ToArray();
         }
 
         /// <summary>
-        /// Syncronously runs all actions and steps
+        /// Syncronously runs all jobs and steps
         /// </summary>
         [DisplayName("Drift Run")]
         public void Run()
         {
-            var runners = GetActions();
-            foreach(var action in runners)
+            var jobs = GetJobs();
+            foreach(var job in jobs)
             {
-                Run(action);
+                Run(job);
             }
         }
 
         /// <summary>
-        /// Runs a particular action
+        /// Runs the job based on the name passed 
         /// </summary>
         /// <param name="index"></param>
         [DisplayName("Drift Run: {0}")]
         public void Run(string name)
         {
-            var actions = GetActions();
-            var action = actions.FirstOrDefault(a => a.Name == name);
-            if(action == null)
+            var jobs = GetJobs();
+            var job = jobs.FirstOrDefault(a => a.Name == name);
+            if(job == null)
             {
-                throw new InvalidOperationException($"The action {name} does not exist");
+                throw new InvalidOperationException($"The job {name} does not exist");
             }
-            Run(action);
+            Run(job);
         }
 
-        private bool Run(DriftAction action)
+        private bool Run(DriftJob job)
         {
             var previousContexts = new List<IDriftStep>();
             dynamic previousBag = null;
-            for (var i = 0; i < action.Steps.Length; i++)
+            for (var i = 0; i < job.Steps.Length; i++)
             {
                 _logger?.LogInformation($"Starting step: {i}");
-                var step = action.Steps[i];
+                var step = job.Steps[i];
                 // Configure the step (think of it like DI.. but ghetto)
                 step.Configure(_k8s, _logger);
                 // Save previous contexts to this step
@@ -138,7 +138,7 @@ namespace Drift
                     _logger?.LogInformation($"Result of {step.Type} User Script: {scriptResult}");
                     if(!scriptResult.Value)
                     {
-                        return false; // user returned false, stop action
+                        return false; // user returned false, stop job
                     }
                 }
                 else
@@ -154,18 +154,18 @@ namespace Drift
             return true; // If everything finished the steps all ran successfully 
         }
 
-        private void ValidateActionNames()
+        private void ValidateJobNames()
         {
             // Get all names
-            _actionNames.AddRange(_config.Actions.Select(a => a.Name));
+            _jobNames.AddRange(_config.Jobs.Select(a => a.Name));
             // Find any null or empty
-            var nullNames = _actionNames.Where(n => string.IsNullOrWhiteSpace(n)).ToList();
+            var nullNames = _jobNames.Where(n => string.IsNullOrWhiteSpace(n)).ToList();
             if(nullNames.Count > 0)
             {
-                throw new InvalidOperationException($"Null or empty name found, all actions need a unique Name");
+                throw new InvalidOperationException($"Null or empty name found, all jobs need a unique Name");
             }
             // Find any duplicates
-            var duplicates = _actionNames
+            var duplicates = _jobNames
                 .GroupBy(x => x)
                 .Where(g => g.Count() > 1)
                 .Select(k => k.Key)
@@ -173,7 +173,7 @@ namespace Drift
             if(duplicates.Count > 0)
             {
                 var firstDuplicate = duplicates.First();
-                throw new InvalidOperationException($"Duplicate action names: {firstDuplicate}.  Action names must be unique");
+                throw new InvalidOperationException($"Duplicate job names: {firstDuplicate}.  Jobs names must be unique");
             }
         }
     }

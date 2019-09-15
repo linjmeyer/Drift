@@ -65,7 +65,7 @@ namespace Drift.AspNetCore
 
             // Hangfire
             app.UseHangfireDashboard();
-            backgroundJobs.AddDriftActionScheduling();
+            backgroundJobs.AddDriftJobScheduling();
 
             app.UseMvc(routes =>
             {

@@ -3,7 +3,7 @@ using Drift.Steps;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-public class DriftAction
+public class DriftJob
 {
     [JsonIgnore]
     public IDriftStep[] Steps { get; set; }
@@ -19,6 +19,10 @@ public class DriftAction
     }
     public string Name { get; set; }
 
+    /// <summary>
+    /// Parses JArray representing Job steps into correct .NET Type which implementings IDriftStep
+    /// </summary>
+    /// <param name="raw"></param>
     private void ParseActual(JArray raw)
     {
         var steps = new List<IDriftStep>();

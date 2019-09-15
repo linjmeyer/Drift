@@ -5,7 +5,7 @@ using System.ComponentModel;
 namespace Drift.AspNetCore
 {
     /// <summary>
-    /// Gets all actions from the Drift config and schedules the actions seperately within Hangfire
+    /// Gets all Jobs from the Drift config and schedules the Jobs seperately within Hangfire
     /// </summary>
     public class DriftScheduler
     {
@@ -19,15 +19,15 @@ namespace Drift.AspNetCore
         }
 
         /// <summary>
-        /// Schedules all current Actions within Hanfire as seperate jobs
+        /// Schedules all current Jobs within Hanfire as seperate jobs
         /// </summary>
         [DisplayName("Drift Scheduler")]
         public void Schedule()
         {
-            var actionNames = _drift.GetActionNames();
-            foreach(var actionName in actionNames)
+            var jobNames = _drift.GetJobNames();
+            foreach(var jobName in jobNames)
             {
-                _backgroundJobs.Enqueue<DriftClient>(drift => drift.Run(actionName));
+                _backgroundJobs.Enqueue<DriftClient>(drift => drift.Run(jobName));
             }
         }
     }
