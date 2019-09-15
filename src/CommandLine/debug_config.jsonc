@@ -6,6 +6,7 @@
                     "type": "GetPod",
                     "namespace": "default",
                     "name": "integrationtestsk8sdotnetcoredogfood-integration-test-job-29glf",
+                    "scriptingLanguage": "csharp",
                     "evaluate": "context.Bag.PodsToDelete = new string[] { context.Pod.Metadata.Name }; return true;"
                 },
                 {
