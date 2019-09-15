@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Hangfire;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel;
 
 namespace Drift.AspNetCore
 {

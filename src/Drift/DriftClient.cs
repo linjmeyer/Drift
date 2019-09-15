@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using Drift.Steps;
 using k8s;
@@ -52,6 +53,7 @@ namespace Drift
             _config = JsonConvert.DeserializeObject<DriftConfig>(fileContents);
         }
 
+        [DisplayName("Drift Run")]
         public void Run()
         {
             // Setup k8s, then build services
