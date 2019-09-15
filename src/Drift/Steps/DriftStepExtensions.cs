@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using CSScriptLib;
 
@@ -15,7 +16,7 @@ namespace Drift.Steps
             // Set file contents to Evaluate property
             // (this means evalFile contents override evaluate if both are set by user)
             var evalFile = GetEvaluateFile(step);
-            if(evalFile != null)
+            if (evalFile != null)
             {
                 step.Evaluate = evalFile;
             }
@@ -25,6 +26,16 @@ namespace Drift.Steps
                 return default(T);
             }
 
+            if (step.ScriptingLanguage == ScriptingLanguage.Csharp)
+            {
+                return step.RunUserEvalCSharp<T>(typeString);
+            }
+            // Else javascript
+            return step.RunUserEvalJavascript<T>();
+        }
+
+        private static T RunUserEvalCSharp<T>(this IDriftStep step, string typeString)
+        {
             var allCode = $@"
             public {(typeString ?? typeof(T).ToString())} UsersMethod(dynamic context)
             {{
@@ -34,9 +45,24 @@ namespace Drift.Steps
             return (T)script.UsersMethod((dynamic)step);
         }
 
+        private static T RunUserEvalJavascript<T>(this IDriftStep step)
+        {
+            var engine = new Jint.Engine();
+            engine.SetValue("context", step);
+            var allCode = $@"
+            function UsersMethod() {{ 
+                {step.Evaluate}
+            }};
+            UsersMethod();
+            ";
+
+            var rawResult = engine.Execute(allCode).GetCompletionValue().ToObject();
+            return (T) rawResult;
+        }
+
         private static string GetEvaluateFile(IDriftStep step)
         {
-            if(!string.IsNullOrWhiteSpace(step.EvaluateFile)) 
+            if (!string.IsNullOrWhiteSpace(step.EvaluateFile))
             {
                 return File.ReadAllText(step.EvaluateFile);
             }

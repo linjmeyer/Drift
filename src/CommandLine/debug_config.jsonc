@@ -5,13 +5,14 @@
                 {
                     "type": "GetPod",
                     "namespace": "default",
-                    "name": "backenddogfoodtests-integration-test-job-lmqxm",
+                    "name": "integrationtestsk8sdotnetcoredogfood-integration-test-job-29glf",
                     "evaluate": "context.Bag.PodsToDelete = new string[] { context.Pod.Metadata.Name }; return true;"
                 },
                 {
-                    "type": "DeletePods",
-                    "namespace": "default",
-                    "namesFromBag": "PodsToDelete"
+                    "type": "GetPod",
+                    "name": "integrationtestsk8sdotnetcoredogfood-integration-test-job-29glf",
+                    "scriptingLanguage": "Javascript",
+                    "evaluate": "context.Bag.NewThing = 'helloooo'; return true;"
                 }
             ]
         }

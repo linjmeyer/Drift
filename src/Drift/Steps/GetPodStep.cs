@@ -15,7 +15,7 @@ namespace Drift.Steps
         [Required]
         public string Name { get; set; }
         [Required]
-        public string Namespace { get; set; }
+        public string Namespace { get; set; } = "default";
         public V1Pod Pod { get; private set; }
 
         public override void Load()
@@ -31,7 +31,7 @@ namespace Drift.Steps
             }
             catch (HttpOperationException e)
             {
-                Log?.LogDebug($"Exception during step {Type}: ", e);
+                Logger?.LogDebug($"Exception during step {Type}: ", e);
                 return false;
             }
             return true;

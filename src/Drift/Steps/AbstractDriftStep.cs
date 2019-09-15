@@ -14,15 +14,17 @@ namespace Drift.Steps
         {
             // ToDo: Move to json.net 
             _k8s = DriftClient.Services.GetRequiredService<IKubernetes>();
-            Log = DriftClient.Services.GetRequiredService<ILogger<DriftClient>>();
+            // ToDo: Use DI
+            Logger = DriftClient.Services.GetRequiredService<ILogger<DriftClient>>();
         }
 
         public string Type { get; set; }
         public string Evaluate { get; set; }
         public string EvaluateFile { get; set; }
+        public ScriptingLanguage ScriptingLanguage { get; set; } = ScriptingLanguage.Csharp;
         public List<IDriftStep> PreviousContexts { get; set; } = new List<IDriftStep>();
         public dynamic Bag { get; set; } = new ExpandoObject();
-        public ILogger<DriftClient> Log { get; set; }
+        public ILogger<DriftClient> Logger { get; set; }
         public abstract bool Run();
         public abstract void Load();
 
@@ -30,12 +32,17 @@ namespace Drift.Steps
         {
             if (PreviousContexts != null && PreviousContexts.Count > index)
             {
-                Log?.LogDebug($"{nameof(GetPreviousContext)} for '{index}' succesfully");
+                Logger?.LogDebug($"{nameof(GetPreviousContext)} for '{index}' succesfully");
                 return PreviousContexts[index];
             }
             // default return null
-            Log?.LogDebug($"{nameof(GetPreviousContext)} for '{index}' called but no matching context found");
+            Logger?.LogDebug($"{nameof(GetPreviousContext)} for '{index}' called but no matching context found");
             return null;
+        }
+
+        public void Log(string message, params object[] vars)
+        {
+            Logger?.LogInformation(message, vars);
         }
     }
 }
