@@ -2,11 +2,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Hangfire;
 using Microsoft.Extensions.Logging;
-using System.ComponentModel;
 
 namespace Drift.AspNetCore
 {
-    public static class DriftExtensions
+    public static class HangfireDriftExtensions
     {
         public static IServiceCollection AddDrift(this IServiceCollection serviceCollection, IConfiguration configuration)
         {
@@ -22,16 +21,22 @@ namespace Drift.AspNetCore
             return serviceCollection;
         }
 
-        public static IBackgroundJobClient AddDriftJobs(this IBackgroundJobClient backgroundJob)
+        /// <summary>
+        /// Adds a Hangfire RecurringJob which reloads the Drift configuration and enqueues each Drift action to run seperately
+        /// </summary>
+        /// <param name="backgroundJob"></param>
+        /// <returns></returns>
+        public static IBackgroundJobClient AddDriftActionScheduling(this IBackgroundJobClient backgroundJob)
         {
             // Setup re-occuring
-            RecurringJob.AddOrUpdate<DriftClient>(
-                drift => drift.Run(),
+            RecurringJob.AddOrUpdate<DriftScheduler>(
+                driftScheduler => driftScheduler.Schedule(),
                 Cron.Minutely
             );
+
             // Fire once now for immediate run
-            backgroundJob.Enqueue<DriftClient>(
-                drift => drift.Run()
+            backgroundJob.Enqueue<DriftScheduler>(
+                driftScheduler => driftScheduler.Schedule()
             );
             return backgroundJob;
         }

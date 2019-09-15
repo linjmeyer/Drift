@@ -12,10 +12,9 @@ namespace Drift.Steps
 
         public AbstractDriftStep()
         {
-            // ToDo: Move to json.net 
-            _k8s = DriftClient.Services.GetRequiredService<IKubernetes>();
-            // ToDo: Use DI
-            Logger = DriftClient.Services.GetService<ILogger<DriftClient>>();
+            // ToDo: Use DI somehow?
+            _k8s = DriftClient.Kubernetes;
+            Logger = DriftClient.Logger;
         }
 
         public string Type { get; set; }

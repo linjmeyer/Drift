@@ -1,6 +1,7 @@
 {
     "actions": [
         {
+            "name": "Debugger",
             "steps": [
                 {
                     "type": "GetPod",

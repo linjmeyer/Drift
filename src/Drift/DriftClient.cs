@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using Drift.Steps;
 using k8s;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,11 +13,12 @@ namespace Drift
 {
     public class DriftClient
     {
-        internal static ServiceProvider Services;
-        public static Kubernetes _k8s; //ToDo: Make private non-static
+        public static IKubernetes Kubernetes;
+        public static ILogger<DriftClient> Logger;
+
         private DriftConfig _config;
-        private ServiceCollection _serviceCollection = new ServiceCollection();
         private DriftClientConfig _clientConfig = new DriftClientConfig();
+        private List<string> _actionNames = new List<string>();
 
         public DriftClient(DriftClientConfig config)
         {
@@ -28,102 +30,102 @@ namespace Drift
             config?.Invoke(_clientConfig);
         }
 
-        private void SetupServices()
-        {
-            _serviceCollection.AddSingleton<IKubernetes>(_k8s);
-            if(_clientConfig.Logger != null) 
-            {
-                _serviceCollection.AddSingleton<ILogger>(_clientConfig.Logger);
-                _serviceCollection.AddSingleton<ILogger<DriftClient>>(_clientConfig.Logger);
-            }
-            DriftClient.Services = _serviceCollection.BuildServiceProvider();
-        }
-
         private void SetupKubernetesClient()
         {
             var config = KubernetesClientConfiguration
                 .BuildConfigFromConfigFile(kubeconfigPath: _clientConfig.KubeConfigPath,
                     currentContext: _clientConfig.KubernetesContext);
-            _k8s = new Kubernetes(config);
+            DriftClient.Kubernetes = new Kubernetes(config);
         }
 
         private void SetupDriftConfig()
         {
+            // Load config (not actions, steps, etc. but config options)
             var fileContents = File.ReadAllText(_clientConfig.DriftConfigPath);
             _config = JsonConvert.DeserializeObject<DriftConfig>(fileContents);
+            // Setup logging if passed in
+            Logger = _clientConfig.Logger;
         }
 
-        [DisplayName("Drift Run")]
-        public void Run()
+
+        /// <summary>
+        /// Gets each action as an action which can be invoked individually
+        /// </summary>
+        /// <returns></returns>
+        public DriftAction[] GetActions()
         {
             // Setup k8s, then build services
             SetupKubernetesClient();
-            SetupServices();
             // Load drift config
             SetupDriftConfig();
-            // Begin
-            RunActions();
-            // Dispose of services
-            Services.Dispose();
+            // Check names for issues
+            ValidateActionNames();
+
+            return _config.Actions;
         }
 
-        private void RunActions()
+        /// <summary>
+        /// Returns the number of Actions present in the config without running or preparing to run them.
+        /// </summary>
+        /// <returns></returns>
+        public string[] GetActionNames()
         {
-            var logger = Services.GetService<ILogger<DriftClient>>();
-            foreach (var action in _config.Actions)
+            SetupDriftConfig();
+            ValidateActionNames();
+
+            return _actionNames.ToArray();
+        }
+
+        /// <summary>
+        /// Syncronously runs all actions and steps
+        /// </summary>
+        [DisplayName("Drift Run")]
+        public void Run()
+        {
+            var runners = GetActions();
+            foreach(var action in runners)
             {
-                logger?.LogInformation($"Found new action with {action.Steps.Length} steps");
-                var actionResult = RunSteps(action, logger);
-                logger?.LogInformation($"Action ran to completion with result: {actionResult}");
+                action.Run(Logger);
             }
         }
 
-        private bool RunSteps(DriftAction action, ILogger<DriftClient> logger)
+        /// <summary>
+        /// Runs a particular action
+        /// </summary>
+        /// <param name="index"></param>
+        [DisplayName("Drift Run: {0}")]
+        public void Run(string name)
         {
-            var previousContexts = new List<IDriftStep>();
-            dynamic previousBag = null;
-            for (var i = 0; i < action.Steps.Length; i++)
+            var actions = GetActions();
+            var action = actions.FirstOrDefault(a => a.Name == name);
+            if(action == null)
             {
-                logger?.LogInformation($"Starting step: {i}");
-                var step = action.Steps[i];
-                // Save previous contexts to this step
-                step.PreviousContexts.AddRange(previousContexts);
-                // Save previous Bag (user data store)
-                if (previousBag != null)
-                {
-                    step.Bag = previousBag;
-                    logger?.LogDebug($"Passing bag from previous step to step {i}.  Contents: {step.Bag}");
-                }
-                
-                logger?.LogDebug("Starting load step");
-                step.Load();
-
-                // Run the step and get the result
-                var runResult = step.Run();
-                logger?.LogInformation($"Result of {step.Type}: {runResult} {(runResult ? "Will run user script" : "Will not run user script")}");
-                if(!runResult) return false; // Stop loop if this step is false
-                
-                // Run the user script and get the result
-                var scriptResult = step.RunUserScript<bool?>(typeString: "bool?");
-                if(scriptResult.HasValue) 
-                {
-                    logger?.LogInformation($"Result of {step.Type} User Script: {scriptResult}");
-                    if(!scriptResult.Value)
-                    {
-                        return false; // user returned false, stop action
-                    }
-                }
-                else
-                {
-                    logger?.LogInformation($"No user script found");
-                }
-
-                // save this step and bag for next step
-                previousContexts.Add(step);
-                previousBag = step.Bag;
+                throw new InvalidOperationException($"The action {name} does not exist");
             }
+            action.Run(Logger);
+        }
 
-            return true; // If everything finished the steps all ran successfully 
+        private void ValidateActionNames()
+        {
+            // Get all names
+            _actionNames.AddRange(_config.Actions.Select(a => a.Name));
+            // Find any null or empty
+            var nullNames = _actionNames.Where(n => string.IsNullOrWhiteSpace(n)).ToList();
+            if(nullNames.Count > 0)
+            {
+                throw new InvalidOperationException($"Null or empty name found, all actions need a unique Name");
+            }
+            // Find any duplicates
+            var duplicates = _actionNames
+                .GroupBy(x => x)
+                .Where(g => g.Count() > 1)
+                .Select(k => k.Key)
+                .ToList();
+            if(duplicates.Count > 0)
+            {
+                var firstDuplicate = duplicates.First();
+                throw new InvalidOperationException($"Duplicate action names: {firstDuplicate}.  Action names must be unique");
+            }
         }
     }
 }
