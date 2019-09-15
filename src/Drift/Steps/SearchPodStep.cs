@@ -8,6 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Drift.Steps
 {
+    /// <summary>
+    /// A step that finds pods in a namespace using a Regexp pattern
+    /// </summary>
     public class SearchPodsStep : AbstractDriftStep
     {
         [Required]

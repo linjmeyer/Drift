@@ -4,6 +4,9 @@ using k8s;
 
 namespace Drift.Steps
 {
+    /// <summary>
+    /// Deletes one or more pods within a namespace
+    /// </summary>
     public class DeletePodsStep : AbstractDriftStep
     {
         [Required]

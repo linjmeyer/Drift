@@ -31,9 +31,9 @@ namespace Drift
             foreach(var item in raw.Children())
             {
                 // Serialize generic step to access the Type string set by user
-                var genericStep = item.ToObject<GenericDriftStep>();
+                var genericStep = item.ToObject<TempInternalDriftStep>();
                 // Get real type based on Type value set by user
-                var assembly = typeof(GenericDriftStep).Assembly;
+                var assembly = typeof(TempInternalDriftStep).Assembly;
                 var dotNetTypeString = $"{nameof(Drift)}.{nameof(Drift.Steps)}.{genericStep.Type}Step";
                 var dotNetType = assembly.GetType(dotNetTypeString);
                 // Serialize to user requested type

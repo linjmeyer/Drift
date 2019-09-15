@@ -7,6 +7,9 @@ using Microsoft.Rest;
 
 namespace Drift.Steps
 {
+    /// <summary>
+    /// A step that gets a pod by name and namespace
+    /// </summary>
     public class GetPodStep : AbstractDriftStep
     {
         [Required]

@@ -6,9 +6,9 @@ namespace Drift.Steps
     /// A placeholder class to allow serailization/deserialization from JSON.
     /// Once deserialized check the Type property to determine the correct concrete class to use
     /// </summary>
-    public class GenericDriftStep : AbstractDriftStep
+    internal class TempInternalDriftStep : AbstractDriftStep
     {
-        private string _notImplemented = $"{nameof(GenericDriftStep)} should not be used.  Use a specific step instead";
+        private string _notImplemented = $"{nameof(TempInternalDriftStep)} should not be used.  Use a specific step instead";
 
         public override void Load()
         {
