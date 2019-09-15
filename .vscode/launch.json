@@ -10,7 +10,9 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/src/CommandLine/bin/Debug/netcoreapp2.2/CommandLine.dll",
-            "args": [],
+            "args": [
+                "--file=/Users/lin.meyer/Personal/Drift/src/CommandLine/debug_config.jsonc"
+            ],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopAtEntry": false
