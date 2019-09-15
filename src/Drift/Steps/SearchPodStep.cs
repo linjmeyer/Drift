@@ -29,13 +29,13 @@ namespace Drift.Steps
             PodList = _k8s.ListNamespacedPod(Namespace);
             if(!PodList.Items.Any())
             {
-                Logger.LogInformation($"Step {Type}: No pods found in namespace {Namespace}");
+                _logger.LogInformation($"Step {Type}: No pods found in namespace {Namespace}");
                 return false;
             }
             Matches = PodList.Items.Where(p => Regex.IsMatch(p.Metadata.Name, NameRegex)).ToList();
             if(!Matches.Any())
             {
-                Logger.LogInformation($"Step {Type}: No matching pods found in namespace {Namespace}, {nameof(NameRegex)} {NameRegex}");
+                _logger.LogInformation($"Step {Type}: No matching pods found in namespace {Namespace}, {nameof(NameRegex)} {NameRegex}");
                 return false;
             }
             return true;

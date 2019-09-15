@@ -31,7 +31,7 @@ namespace Drift.Steps
             }
             catch (HttpOperationException e)
             {
-                Logger?.LogDebug($"Exception during step {Type}: ", e);
+                _logger?.LogDebug($"Exception during step {Type}: ", e);
                 return false;
             }
             return true;

@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using Drift.Steps;
 using k8s;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -13,8 +12,8 @@ namespace Drift
 {
     public class DriftClient
     {
-        public static IKubernetes Kubernetes;
-        public static ILogger<DriftClient> Logger;
+        private IKubernetes _k8s;
+        private ILogger<DriftClient> _logger;
 
         private DriftConfig _config;
         private DriftClientConfig _clientConfig = new DriftClientConfig();
@@ -35,7 +34,7 @@ namespace Drift
             var config = KubernetesClientConfiguration
                 .BuildConfigFromConfigFile(kubeconfigPath: _clientConfig.KubeConfigPath,
                     currentContext: _clientConfig.KubernetesContext);
-            DriftClient.Kubernetes = new Kubernetes(config);
+            _k8s = new Kubernetes(config);
         }
 
         private void SetupDriftConfig()
@@ -44,7 +43,7 @@ namespace Drift
             var fileContents = File.ReadAllText(_clientConfig.DriftConfigPath);
             _config = JsonConvert.DeserializeObject<DriftConfig>(fileContents);
             // Setup logging if passed in
-            Logger = _clientConfig.Logger;
+            _logger = _clientConfig.Logger;
         }
 
 
@@ -85,7 +84,7 @@ namespace Drift
             var runners = GetActions();
             foreach(var action in runners)
             {
-                action.Run(Logger);
+                Run(action);
             }
         }
 
@@ -102,7 +101,57 @@ namespace Drift
             {
                 throw new InvalidOperationException($"The action {name} does not exist");
             }
-            action.Run(Logger);
+            Run(action);
+        }
+
+        private bool Run(DriftAction action)
+        {
+            var previousContexts = new List<IDriftStep>();
+            dynamic previousBag = null;
+            for (var i = 0; i < action.Steps.Length; i++)
+            {
+                _logger?.LogInformation($"Starting step: {i}");
+                var step = action.Steps[i];
+                // Configure the step (think of it like DI.. but ghetto)
+                step.Configure(_k8s, _logger);
+                // Save previous contexts to this step
+                step.PreviousContexts.AddRange(previousContexts);
+                // Save previous Bag (user data store)
+                if (previousBag != null)
+                {
+                    step.Bag = previousBag;
+                    _logger?.LogDebug($"Passing bag from previous step to step {i}.  Contents: {step.Bag}");
+                }
+                
+                _logger?.LogDebug("Starting load step");
+                step.Load();
+
+                // Run the step and get the result
+                var runResult = step.Run();
+                _logger?.LogInformation($"Result of {step.Type}: {runResult} {(runResult ? "Will run user script" : "Will not run user script")}");
+                if(!runResult) return false; // Stop loop if this step is false
+                
+                // Run the user script and get the result
+                var scriptResult = step.RunUserScript<bool?>(typeString: "bool?");
+                if(scriptResult.HasValue) 
+                {
+                    _logger?.LogInformation($"Result of {step.Type} User Script: {scriptResult}");
+                    if(!scriptResult.Value)
+                    {
+                        return false; // user returned false, stop action
+                    }
+                }
+                else
+                {
+                    _logger?.LogInformation($"No user script found");
+                }
+
+                // save this step and bag for next step
+                previousContexts.Add(step);
+                previousBag = step.Bag;
+            }
+
+            return true; // If everything finished the steps all ran successfully 
         }
 
         private void ValidateActionNames()

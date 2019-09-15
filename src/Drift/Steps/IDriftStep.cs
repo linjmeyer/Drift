@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using k8s;
 using Microsoft.Extensions.Logging;
 
 namespace Drift.Steps
@@ -19,6 +20,7 @@ namespace Drift.Steps
         dynamic Bag { get; set; }
         bool Run();
         void Load();
+        void Configure(IKubernetes k8s, ILogger logger);
         void Log(string message, params object[] vars);
     }
 }
