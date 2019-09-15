@@ -15,7 +15,7 @@ namespace Drift.Steps
             // ToDo: Move to json.net 
             _k8s = DriftClient.Services.GetRequiredService<IKubernetes>();
             // ToDo: Use DI
-            Logger = DriftClient.Services.GetRequiredService<ILogger<DriftClient>>();
+            Logger = DriftClient.Services.GetService<ILogger<DriftClient>>();
         }
 
         public string Type { get; set; }

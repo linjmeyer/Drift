@@ -17,6 +17,11 @@ namespace Drift
         private ServiceCollection _serviceCollection = new ServiceCollection();
         private DriftClientConfig _clientConfig = new DriftClientConfig();
 
+        public DriftClient(DriftClientConfig config)
+        {
+            _clientConfig = config;
+        }
+
         public DriftClient(Action<DriftClientConfig> config = null)
         {
             config?.Invoke(_clientConfig);
@@ -62,12 +67,12 @@ namespace Drift
 
         private void RunActions()
         {
-            var logger = Services.GetRequiredService<ILogger<DriftClient>>();
+            var logger = Services.GetService<ILogger<DriftClient>>();
             foreach (var action in _config.Actions)
             {
-                logger.LogInformation($"Found new action with {action.Steps.Length} steps");
+                logger?.LogInformation($"Found new action with {action.Steps.Length} steps");
                 var actionResult = RunSteps(action, logger);
-                logger.LogInformation($"Action ran to completion with result: {actionResult}");
+                logger?.LogInformation($"Action ran to completion with result: {actionResult}");
             }
         }
 
@@ -77,7 +82,7 @@ namespace Drift
             dynamic previousBag = null;
             for (var i = 0; i < action.Steps.Length; i++)
             {
-                logger.LogInformation($"Starting step: {i}");
+                logger?.LogInformation($"Starting step: {i}");
                 var step = action.Steps[i];
                 // Save previous contexts to this step
                 step.PreviousContexts.AddRange(previousContexts);
@@ -85,22 +90,22 @@ namespace Drift
                 if (previousBag != null)
                 {
                     step.Bag = previousBag;
-                    logger.LogDebug($"Passing bag from previous step to step {i}.  Contents: {step.Bag}");
+                    logger?.LogDebug($"Passing bag from previous step to step {i}.  Contents: {step.Bag}");
                 }
                 
-                logger.LogDebug("Starting load step");
+                logger?.LogDebug("Starting load step");
                 step.Load();
 
                 // Run the step and get the result
                 var runResult = step.Run();
-                logger.LogInformation($"Result of {step.Type}: {runResult} {(runResult ? "Will run user script" : "Will not run user script")}");
+                logger?.LogInformation($"Result of {step.Type}: {runResult} {(runResult ? "Will run user script" : "Will not run user script")}");
                 if(!runResult) return false; // Stop loop if this step is false
                 
                 // Run the user script and get the result
                 var scriptResult = step.RunUserScript<bool?>(typeString: "bool?");
                 if(scriptResult.HasValue) 
                 {
-                    logger.LogInformation($"Result of {step.Type} User Script: {scriptResult}");
+                    logger?.LogInformation($"Result of {step.Type} User Script: {scriptResult}");
                     if(!scriptResult.Value)
                     {
                         return false; // user returned false, stop action
@@ -108,7 +113,7 @@ namespace Drift
                 }
                 else
                 {
-                    logger.LogInformation($"No user script found");
+                    logger?.LogInformation($"No user script found");
                 }
 
                 // save this step and bag for next step
