@@ -10,48 +10,48 @@ namespace Drift.Steps
     /// </summary>
     internal static class DriftStepExtensions
     {
-        internal static T RunUserEval<T>(this IDriftStep step, string typeString = null)
+        internal static T RunUserScript<T>(this IDriftStep step, string typeString = null)
         {
             // Get file contents if set
-            // Set file contents to Evaluate property
-            // (this means evalFile contents override evaluate if both are set by user)
-            var evalFile = GetEvaluateFile(step);
-            if (evalFile != null)
+            // Set file contents to Script property
+            // (this means scriptFile contents override script if both are set by user)
+            var scriptFile = GetUserScriptFile(step);
+            if (scriptFile != null)
             {
-                step.Evaluate = evalFile;
+                step.Script = scriptFile;
             }
 
-            if (string.IsNullOrWhiteSpace(step.Evaluate))
+            if (string.IsNullOrWhiteSpace(step.Script))
             {
                 return default(T);
             }
 
             if (step.ScriptingLanguage == ScriptingLanguage.Csharp)
             {
-                return step.RunUserEvalCSharp<T>(typeString);
+                return step.RunUserScriptCSharp<T>(typeString);
             }
             // Else javascript
-            return step.RunUserEvalJavascript<T>();
+            return step.RunUserScriptJavascript<T>();
         }
 
-        private static T RunUserEvalCSharp<T>(this IDriftStep step, string typeString)
+        private static T RunUserScriptCSharp<T>(this IDriftStep step, string typeString)
         {
             var allCode = $@"
             public {(typeString ?? typeof(T).ToString())} UsersMethod(dynamic context)
             {{
-                {step.Evaluate}
+                {step.Script}
             }}";
             dynamic script = CSScript.Evaluator.LoadMethod(allCode);
             return (T)script.UsersMethod((dynamic)step);
         }
 
-        private static T RunUserEvalJavascript<T>(this IDriftStep step)
+        private static T RunUserScriptJavascript<T>(this IDriftStep step)
         {
             var engine = new Jint.Engine();
             engine.SetValue("context", step);
             var allCode = $@"
             function UsersMethod() {{ 
-                {step.Evaluate}
+                {step.Script}
             }};
             UsersMethod();
             ";
@@ -60,11 +60,11 @@ namespace Drift.Steps
             return (T) rawResult;
         }
 
-        private static string GetEvaluateFile(IDriftStep step)
+        private static string GetUserScriptFile(IDriftStep step)
         {
-            if (!string.IsNullOrWhiteSpace(step.EvaluateFile))
+            if (!string.IsNullOrWhiteSpace(step.ScriptFile))
             {
-                return File.ReadAllText(step.EvaluateFile);
+                return File.ReadAllText(step.ScriptFile);
             }
 
             return null;

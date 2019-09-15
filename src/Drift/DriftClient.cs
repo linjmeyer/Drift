@@ -93,22 +93,22 @@ namespace Drift
 
                 // Run the step and get the result
                 var runResult = step.Run();
-                logger.LogInformation($"Result of {step.Type}: {runResult} {(runResult ? "Will run user eval" : "Will not run user eval")}");
+                logger.LogInformation($"Result of {step.Type}: {runResult} {(runResult ? "Will run user script" : "Will not run user script")}");
                 if(!runResult) return false; // Stop loop if this step is false
                 
-                // Run the user eval and get the result
-                var evalResult = step.RunUserEval<bool?>(typeString: "bool?");
-                if(evalResult.HasValue) 
+                // Run the user script and get the result
+                var scriptResult = step.RunUserScript<bool?>(typeString: "bool?");
+                if(scriptResult.HasValue) 
                 {
-                    logger.LogInformation($"Result of {step.Type} User Eval: {evalResult}");
-                    if(!evalResult.Value)
+                    logger.LogInformation($"Result of {step.Type} User Script: {scriptResult}");
+                    if(!scriptResult.Value)
                     {
                         return false; // user returned false, stop action
                     }
                 }
                 else
                 {
-                    logger.LogInformation($"No user eval found");
+                    logger.LogInformation($"No user script found");
                 }
 
                 // save this step and bag for next step

@@ -7,13 +7,13 @@
                     "namespace": "default",
                     "name": "integrationtestsk8sdotnetcoredogfood-integration-test-job-29glf",
                     "scriptingLanguage": "csharp",
-                    "evaluate": "context.Bag.PodsToDelete = new string[] { context.Pod.Metadata.Name }; return true;"
+                    "script": "context.Bag.PodsToDelete = new string[] { context.Pod.Metadata.Name }; return true;"
                 },
                 {
                     "type": "GetPod",
                     "name": "integrationtestsk8sdotnetcoredogfood-integration-test-job-29glf",
                     "scriptingLanguage": "Javascript",
-                    "evaluate": "context.Bag.NewThing = 'helloooo'; return true;"
+                    "script": "context.Bag.NewThing = 'helloooo'; return true;"
                 },
                 {
                     "type": "Webhook",

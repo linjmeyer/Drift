@@ -19,8 +19,8 @@ namespace Drift.Steps
         }
 
         public string Type { get; set; }
-        public string Evaluate { get; set; }
-        public string EvaluateFile { get; set; }
+        public string Script { get; set; }
+        public string ScriptFile { get; set; }
         public ScriptingLanguage ScriptingLanguage { get; set; } = ScriptingLanguage.JavaScript;
         public List<IDriftStep> PreviousContexts { get; set; } = new List<IDriftStep>();
         public dynamic Bag { get; set; } = new ExpandoObject();
