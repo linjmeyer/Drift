@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Hangfire;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Drift.AspNetCore
 {
@@ -9,10 +10,14 @@ namespace Drift.AspNetCore
     {
         public static IServiceCollection AddDrift(this IServiceCollection serviceCollection, IConfiguration configuration)
         {
-            serviceCollection.AddTransient<DriftClient>((services) => {
-                // Load "Drift" section from appsettings
+            serviceCollection.AddTransient<DriftClientConfig>((services) => {
                 var driftSection = configuration.GetSection("Drift");
                 var driftConfig = driftSection.Get<DriftClientConfig>();
+                return driftConfig;
+            });
+            serviceCollection.AddTransient<DriftClient>((services) => {
+                // Load "Drift" section from appsettings
+                var driftConfig = services.GetRequiredService<DriftClientConfig>();
                 // Pass our logger to the config
                 driftConfig.Logger = services.GetService<ILogger<DriftClient>>();
                 var drift = new DriftClient(driftConfig);
