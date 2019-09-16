@@ -7,6 +7,7 @@ using Drift.Steps;
 using k8s;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Drift.Helpers;
 
 namespace Drift
 {
@@ -147,7 +148,7 @@ namespace Drift
                 if (previousBag != null)
                 {
                     step.Bag = previousBag;
-                    _logger?.LogDebug($"Passing bag from previous step to step {i}.  Contents: {step.Bag}");
+                    _logger?.LogDebug($"Passing bag from previous step to step {i}.  Contents: {Extensions.ToLogString(step.Bag)}");
                 }
                 
                 _logger?.LogDebug("Starting load step");

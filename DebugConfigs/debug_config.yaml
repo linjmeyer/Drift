@@ -1,5 +1,17 @@
 Jobs:
-    - name: "Debugger"
-      steps: 
-      - type: Script
-        script: "return true;"
+- name: Debugger
+  steps:
+  - type: GetPod
+    namespace: default
+    name: integrationtestsk8sdotnetcoredogfood-integration-test-job-29glf
+    scriptingLanguage: csharp
+    script: context.Bag.PodsToDelete = new string[] { context.Pod.Metadata.Name };
+      return true;
+  - type: GetPod
+    name: integrationtestsk8sdotnetcoredogfood-integration-test-job-29glf
+    scriptingLanguage: Javascript
+    script: context.Bag.NewThing = 'helloooo'; return true;
+  - type: Webhook
+    url: https://webhook.site/500fd254-451b-4684-aa90-b89cee2dc5d8
+    payload:
+      test: test
