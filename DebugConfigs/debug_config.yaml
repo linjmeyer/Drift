@@ -1,0 +1,5 @@
+Jobs:
+    - name: "Debugger"
+      steps: 
+      - type: Script
+        script: "return true;"

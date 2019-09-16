@@ -39,11 +39,38 @@ namespace Drift
 
         private void SetupDriftConfig()
         {
+            string fileContents;
             // Load config (not jobs, steps, etc. but config options)
-            var fileContents = File.ReadAllText(_clientConfig.DriftConfigPath);
+            if(_clientConfig.DriftConfigPath.EndsWith(".yaml") || _clientConfig.DriftConfigPath.EndsWith(".yml"))
+            {
+                // Convert yaml to json
+                fileContents = ReadConfigYamlToJson(_clientConfig.DriftConfigPath);
+            }
+            else 
+            {
+                // Read json config
+                fileContents = ReadConfigJson(_clientConfig.DriftConfigPath);
+            }
+            // Serialize json to object
             _config = JsonConvert.DeserializeObject<DriftConfig>(fileContents);
             // Setup logging if passed in
             _logger = _clientConfig.Logger;
+        }
+
+        private string ReadConfigJson(string path)
+        {
+            return File.ReadAllText(path);
+        }
+
+        private string ReadConfigYamlToJson(string path)
+        {
+            var yamlReader = new StringReader(File.ReadAllText(path));
+            var deserializer = new YamlDotNet.Serialization.DeserializerBuilder().Build();
+            var yamlObject = deserializer.Deserialize(yamlReader);
+            var serializer = new YamlDotNet.Serialization.SerializerBuilder()
+                .JsonCompatible()
+                .Build();
+            return serializer.Serialize(yamlObject);
         }
 
 

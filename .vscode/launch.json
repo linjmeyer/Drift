@@ -29,9 +29,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/CommandLine/bin/Debug/netcoreapp2.2/CommandLine.dll",
+            "program": "${workspaceFolder}/src/CommandLine/bin/Debug/netcoreapp2.2/Drift.CommandLine.dll",
             "args": [
-                "--file=/Users/lin.meyer/Personal/Drift/src/CommandLine/debug_config.jsonc"
+                "--file=DebugConfigs/debug_config.yaml"
             ],
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
