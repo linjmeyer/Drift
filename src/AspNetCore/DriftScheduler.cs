@@ -3,6 +3,7 @@ using Drift;
 using System.ComponentModel;
 using Hangfire.Server;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace Drift.AspNetCore
 {
@@ -27,6 +28,10 @@ namespace Drift.AspNetCore
         /// </summary>
         public void Schedule()
         {
+            //ToDo: Remove kubectl call
+            // As working around to k8s rest not supporting refresh tokens
+            // Run kubectl command to handle this for us
+            RunKubectlRefresh();
             _logger.LogInformation("Loading drift jobs");
             // Recreate client using this config and get job names
             var jobNames = new DriftClient(_driftConfig).GetJobNames();
@@ -51,6 +56,28 @@ namespace Drift.AspNetCore
             config.Logger = new HangfireConsoleLogger<DriftClient>(hangfireContext, config.Logger);
             var drift = new DriftClient(config);
             drift.Run(jobName);
+        }
+
+        /// <summary>
+        /// Runs kubectl get pods to trigger a token refresh, which is not currently supported by the K8s Client
+        /// </summary>
+        //ToDo: Remove kubectl command
+        private void RunKubectlRefresh()
+        {   
+            var cmd = $"kubectl get pods -n default";
+            var process = new Process()
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "/bin/bash",
+                    Arguments = $"-c \"{cmd}\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                }
+            };
+            process.Start();
+            string result = process.StandardOutput.ReadToEnd();
         }
     }
 }
